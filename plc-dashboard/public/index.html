@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PLC Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.3/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-semibold mb-4">Dashboard PLC</h1>
+        
+        <!-- Form per selezionare programma -->
+        <div class="mb-6">
+            <label for="programNumber" class="block text-xl mb-2">Numero Programma:</label>
+            <input type="number" id="programNumber" class="border p-2 w-1/4" placeholder="Numero Programma" value="0">
+            <button id="sendProgram" class="bg-blue-500 text-white p-2 ml-2 rounded">Invia Programma</button>
+        </div>
+
+        <!-- Pulsanti per controllare il robot -->
+        <div class="mb-6">
+            <button id="startRobot" class="bg-green-500 text-white p-4 rounded mr-4">Avvia Robot</button>
+            <button id="stopRobot" class="bg-red-500 text-white p-4 rounded">Ferma Robot</button>
+        </div>
+
+        <!-- Sezione per visualizzare i dati in tempo reale -->
+        <div>
+            <h2 class="text-2xl mb-2">Dati in tempo reale</h2>
+            <canvas id="plcDataChart" class="w-full h-64"></canvas>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // WebSocket per aggiornamenti in tempo reale
+            const ws = new WebSocket('ws://localhost:3000');
+            const ctx = document.getElementById('plcDataChart').getContext('2d');
+            let plcData = { labels: [], byte1: [], byte2: [] };
+            
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: plcData.labels,
+                    datasets: [{
+                        label: 'Byte 1',
+                        data: plcData.byte1,
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        fill: false
+                    }, {
+                        label: 'Byte 2',
+                        data: plcData.byte2,
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        fill: false
+                    }]
+                }
+            });
+
+            ws.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                const time = new Date().toLocaleTimeString();
+                plcData.labels.push(time);
+                plcData.byte1.push(data.byte1);
+                plcData.byte2.push(data.byte2);
+
+                // Limita il numero di dati da visualizzare
+                if (plcData.labels.length > 20) {
+                    plcData.labels.shift();
+                    plcData.byte1.shift();
+                    plcData.byte2.shift();
+                }
+
+                chart.update();
+            };
+
+            // Invia il numero del programma al PLC
+            $('#sendProgram').click(function() {
+                const programNumber = $('#programNumber').val();
+                $.ajax({
+                    url: '/plc/program',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ programNumber }),
+                    success: function() {
+                        alert('Programma inviato correttamente');
+                    },
+                    error: function() {
+                        alert('Errore nel invio del programma');
+                    }
+                });
+            });
+
+            // Avvia il robot
+            $('#startRobot').click(function() {
+                $.post('/plc/start', function() {
+                    alert('Robot avviato');
+                });
+            });
+
+            // Ferma il robot
+            $('#stopRobot').click(function() {
+                $.post('/plc/stop', function() {
+                    alert('Robot fermato');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
