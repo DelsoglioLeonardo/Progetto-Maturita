@@ -2,6 +2,8 @@
 
 Questo repository contiene il progetto di maturità, sviluppato da **Delsoglio Leonardo**, **Fissore Simone** e **Scoffone Cristian**. Il nostro obiettivo è sfruttare i robot presenti nel laboratorio di robotica della scuola per realizzare applicazioni avanzate. Il progetto è suddiviso in più fasi, ciascuna con un obiettivo specifico.
 
+Abbiamo anche **pubblicato un sito** che permette di connettersi al **PLC** su **Render**. Tuttavia, il sito è ancora in fase di lavorazione e non è completo. Puoi visitarlo al seguente [link](https://progetto-maturita.onrender.com).
+
 ---
 
 ## 🔹 **Fase 1 - Comunicazione tra Robot e PLC** (Stato: **In corso** ✅)
